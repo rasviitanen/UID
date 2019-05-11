@@ -1,8 +1,6 @@
 'use strict';
 
 import './pouchdb.js';
-//import PouchDBFind from './pouchdb.js';
-//PouchDB.plugin(PouchDBFind);
 
 const UIDDatabase = (function() {
     var db = new PouchDB('UID');

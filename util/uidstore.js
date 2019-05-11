@@ -1,5 +1,6 @@
 import UIDDatabase from "./uiddatabase.js"
 import UIDCommunication from "./uidcommunication.js"
+import "./vue.js"
 import "./vuex.js"
 Vue.use(Vuex)
 

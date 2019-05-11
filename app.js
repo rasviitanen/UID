@@ -1,4 +1,4 @@
-import UIDStore from "./uidstore.js"
+import UIDStore from "./util/uidstore.js"
 // Full spec-compliant TodoMVC with localStorage persistence
 // and hash-based routing in ~120 effective lines of JavaScript.
 
