@@ -8,6 +8,8 @@ class UIDCommunication {
         this.config = {"iceServers":[{"urls":"stun:stun.l.google.com:19302"}]};
         this.peerConnection = null;
         this.dataChannel = null;
+        this.dataChannels = [];
+
         this.generateAndSetUniqueClientName();
     }
 
@@ -93,25 +95,27 @@ class UIDCommunication {
                 this.sendNegotiation("candidate", e.candidate);
             };
     
-            this.dataChannel = this.peerConnection.createDataChannel("datachannel");
-            this.dataChannel.onopen = () => {
+            var dataChannel = this.peerConnection.createDataChannel("datachannel");
+            dataChannel.onopen = () => {
                 console.log("------ DATACHANNEL OPENED ------");
             };
-
-            this.dataChannel.onclose = () => {
+            
+            dataChannel.onclose = () => {
                 console.log("------ DC closed! ------");
             };
-
-            this.dataChannel.onerror = (err) => {
+            
+            dataChannel.onerror = (err) => {
                 console.log("DC ERROR!!!");
                 reject(err);
             };
+            
+            this.dataChannels.push(dataChannel);
 
             this.peerConnection.ondatachannel = (ev) => {
                 console.log('peerConnection.ondatachannel event fired.');
                 ev.channel.onopen = () => {
                     console.log('Data channel is open and ready to be used.');
-                    this.dataChannel.send(JSON.stringify({action: "heartbeat", message: "Heartbeat from [" + this.client + "]"}));
+                    dataChannel.send(JSON.stringify({action: "heartbeat", message: "Heartbeat from [" + this.client + "]"}));
                     resolve(this);
                 };
                 ev.channel.onmessage = (e) => {
@@ -131,7 +135,9 @@ class UIDCommunication {
     }
 
     sendDirect(msg){
-        this.dataChannel.send(msg);
+        this.dataChannels.map((channel) => {
+            channel.send(msg);
+        });
     }
 
     processMessage(e) {
@@ -149,17 +155,19 @@ class UIDCommunication {
             this.sendNegotiation("candidate", e.candidate);
         };
 
-        this.dataChannel = this.peerConnection.createDataChannel("datachannel");
+        var dataChannel = this.peerConnection.createDataChannel("datachannel");
 
-        this.dataChannel.onopen = () => {console.log("------ DATACHANNEL OPENED ------")};       
-        this.dataChannel.onclose = (e) => {console.log("------ DC closed! ------", e)};
-        this.dataChannel.onerror = (e) => {console.log("DC ERROR!!!", e)};
+        dataChannel.onopen = () => {console.log("------ DATACHANNEL OPENED ------")};       
+        dataChannel.onclose = (e) => {console.log("------ DC closed! ------", e)};
+        dataChannel.onerror = (e) => {console.log("DC ERROR!!!", e)};
+
+        this.dataChannels.push(dataChannel);
 
         this.peerConnection.ondatachannel = (ev) => {
             console.log('peerConnection.ondatachannel event fired.');
             ev.channel.onopen = () => {
                 console.log('Data channel is open and ready to be used.');
-                this.dataChannel.send(JSON.stringify({action: "heartbeat", message: "Heartbeat from [" + this.client + "]"}));
+                dataChannel.send(JSON.stringify({action: "heartbeat", message: "Heartbeat from [" + this.client + "]"}));
             };
             ev.channel.onmessage = (e) => {
                 this.processMessage(e)
