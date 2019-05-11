@@ -2,22 +2,6 @@ import UIDStore from "./uidstore.js"
 // Full spec-compliant TodoMVC with localStorage persistence
 // and hash-based routing in ~120 effective lines of JavaScript.
 
-// localStorage persistence
-var STORAGE_KEY = 'todos-vuejs-2.0'
-var todoStorage = {
-  fetch: function () {
-    var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    todos.forEach(function (todo, index) {
-      todo.id = index
-    })
-    todoStorage.uid = todos.length
-    return todos
-  },
-  save: function (todos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  }
-}
-
 // visibility filters
 var filters = {
   all: function (todos) {
@@ -38,12 +22,15 @@ var filters = {
 // app Vue instance
 var app = new Vue({
   // app initial state
+  
   data: {
     newTodo: '',
     editedTodo: null,
-    visibility: 'all'
+    visibility: 'all',
   },
-
+  beforeCreate: function() {
+    UIDStore.dispatch("addField", "todos")
+  },
   mounted: () => {
     UIDStore.dispatch("fetch", "todos")
   },
@@ -52,7 +39,7 @@ var app = new Vue({
   watch: {
     todos: {
       handler: function (todos) {
-        UIDStore.dispatch("sync", "todos");
+        UIDStore.dispatch("sync", "todos")
         //todoStorage.save(todos)
         UIDStore.dispatch("save", "todos")
       },
@@ -65,7 +52,7 @@ var app = new Vue({
   computed: {
     todos: {
       get: () => {
-        return UIDStore.getters.todos
+        return UIDStore.state.todos
       },
       set: (newValue) => {
         UIDStore.commit("update", {key: "todos", value: newValue})
@@ -104,7 +91,7 @@ var app = new Vue({
         return
       }
       this.todos.push({
-        id: todoStorage.uid++,
+        id: this.todos.length,
         title: value,
         completed: false
       })
